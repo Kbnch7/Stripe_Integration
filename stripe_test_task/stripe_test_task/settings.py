@@ -23,11 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-b#*-5td%cq5(hb^u7imgn5x117j4)0j9!$0mk@g&xgz6*@mf9@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
-    'nonverbal-tina-trotty.ngrok-free.dev',
-    'localhost'
+    '*'
 ]
 
 import stripe
