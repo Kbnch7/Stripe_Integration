@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5 text-center">
+
+                    <h1 class="display-5 fw-bold text-primary mb-4">{{ item.name }}</h1>
+
+                    {% if item.description %}
+                        <p class="lead text-muted mb-5">{{ item.description }}</p>
+                    {% endif %}
+
+                    <div class="mb-5">
+                        <span class="display-4 fw-bold text-success">{{ item.price }} USD</span>
+                    </div>
+
+                    <button id="buy-button" class="btn btn-lg btn-primary px-5 py-3 shadow">
+                        Купить сейчас
+                    </button>
+
+                    <a class="btn btn-lg btn-secondary px-5 py-3 shadow" href="{% url 'add_to_cart' item.id %}">
+                        Добавить в корзину
+                    </a>
+
+                    <div class="mt-4">
+                        <a href="{% url 'home' %}" class="text-decoration-none text-muted">
+                            ← Вернуться на главную
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const stripe = Stripe('{{ public_key }}');
+
+    document.getElementById('buy-button').addEventListener('click', function () {
+        fetch('/buy/{{ item.id }}/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка сети');
+                }
+                return response.json();
+            })
+            .then(data => {
+                return stripe.redirectToCheckout({
+                    sessionId: data.session_id
+                });
+            })
+            .then(result => {
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Не удалось начать оплату. Попробуйте позже.');
+            });
+    });
+</script>
+
+</body>
+</html>
+{% endblock %}

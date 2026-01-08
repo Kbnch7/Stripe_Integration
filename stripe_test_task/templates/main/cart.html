@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Корзина | Магазин{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-5 fw-bold text-primary text-center mb-5">Ваша корзина</h1>
+
+    {% if cart_items %}
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for cart_item in cart_items %}
+                                <li class="list-group-item d-flex align-items-center py-4">
+                                    <div class="flex-grow-1">
+                                        <h5 class="mb-1 fw-semibold">{{ cart_item.item.name }}</h5>
+                                        <p class="text-muted mb-0 small">{{ cart_item.item.description|truncatechars:80 }}</p>
+                                    </div>
+
+                                    <div class="text-center me-3">
+                                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'decrease_item' cart_item.item.id %}">-</a>
+                                    </div>
+
+                                    <div class="text-center me-3">
+                                        <strong>{{ cart_item.amount }} шт.</strong>
+                                    </div>
+
+                                    <div class="text-center me-3">
+                                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'add_to_cart' cart_item.item.id %}">+</a>
+                                    </div>
+
+                                    <div class="text-end me-4">
+                                        <span class="fw-bold text-success fs-5">
+                                            {% widthratio cart_item.amount 1 cart_item.item.price %} USD
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <form method="post" action="{% url 'remove_item' cart_item.item.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+                                        </form>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+
+                        <div class="border-top pt-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="fw-bold mb-0">Итого:</h4>
+                                <h4 class="text-success fw-bold mb-0">{{ total_price }} USD</h4>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <button id="buy-button" type="button" class="btn btn-primary btn-lg px-5 shadow">
+                                Оформить заказ
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    {% else %}
+        <div class="text-center py-5">
+            <h3 class="text-muted">Корзина пуста</h3>
+            <p class="text-muted mb-4">Добавьте товары, чтобы оформить заказ</p>
+            <a href="{% url 'home' %}" class="btn btn-primary px-5">Перейти к покупкам</a>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe('{{ public_key }}');
+
+    document.getElementById('buy-button').addEventListener('click', function () {
+        const url = '/make_order/';
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || 'Ошибка сервера'); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.session_id) {
+                    return stripe.redirectToCheckout({ sessionId: data.session_id });
+                } else {
+                    throw new Error(data.error || 'Неизвестная ошибка');
+                }
+            })
+            .then(result => {
+                if (result && result.error) {
+                    alert('Ошибка Stripe: ' + result.error.message);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Не удалось начать оплату: ' + error.message);
+            });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  django:
+    build: .
+    container_name: stripe_django
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env  # ← Вот так правильно передаём переменные из .env
+
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: stripe_ngrok
+    restart: unless-stopped
+    command:
+      - "http"
+      - "django:8000"
+      - "--log=stdout"
+      - "--authtoken=${ngrok_auth_token}"
+    env_file:
+      - .env
+    ports:
+      - "4040:4040"
+    depends_on:
+      - django
