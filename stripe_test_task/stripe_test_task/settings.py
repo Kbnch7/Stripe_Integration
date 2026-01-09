@@ -9,6 +9,11 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+import stripe
+import os
+import dotenv
+
+dotenv.load_dotenv()
 
 from pathlib import Path
 
@@ -20,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-b#*-5td%cq5(hb^u7imgn5x117j4)0j9!$0mk@g&xgz6*@mf9@'
+SECRET_KEY = os.getenv('django_secret_key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -29,11 +34,6 @@ ALLOWED_HOSTS = [
     '*'
 ]
 
-import stripe
-import os
-import dotenv
-
-dotenv.load_dotenv()
 stripe.api_key=os.getenv('stripe_secret_key')
 
 
